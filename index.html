@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="manifest" href="/manifest.json">
+    <title>Ghibli + PixelArt PokuCard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        html, body {
+            font-family: 'Arimo', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            justify-content: center;
+            align-items: center;
+            padding-left: 18.9px;
+            padding-right: 40px;
+        }
+        .left-panel {
+            flex: 2;
+            min-width: 300px;
+            max-width: 518px;
+        }
+        .right-panel {
+            width: 300px;
+            margin: 0;
+        }
+        .card-container {
+            position: relative;
+            width: 290px;
+            height: 462px;
+            margin: 0 auto;
+        }
+        .card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .card-top {
+            z-index: 2;
+        }
+        .card-bottom {
+            z-index: 1;
+            top: calc(76 / 462 * 100%);
+            left: calc(76 / 290 * 100%);
+            transform: translate(20%, -20%);
+        }
+        .watermark-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 13;
+            pointer-events: none;
+        }
+        .watermark {
+            position: absolute;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 3rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        details {
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            width: 518px;
+        }
+        summary {
+            font-family: 'Arimo', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .dropdown-group {
+            margin-bottom: 20px;
+        }
+        .dropdown-group h3 {
+            font-family: 'Arimo', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+        select, input, textarea {
+            width: 100%;
+            padding: 8px;
+            font-family: 'Arimo', sans-serif;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            height: 38px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: auto;
+            resize: vertical;
+        }
+        .emoji-label::before {
+            content: '🎨 ';
+            font-family: 'Noto Color Emoji', sans-serif;
+        }
+        #poem-inputs {
+            display: none;
+        }
+        .submit-container {
+            text-align: center;
+            margin-top: 20px;
+            width: 518px;
+        }
+        .submit-container button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+        .custom-select {
+            position: relative;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .custom-select-button {
+            width: 100%;
+            padding: 8px;
+            font-family: 'Arimo', sans-serif;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: white;
+            text-align: left;
+            height: 38px;
+            display: flex;
+            align-items: center;
+        }
+        .custom-select-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-height: 500px;
+            overflow-y: auto;
+            z-index: 1001;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            padding: 0;
+        }
+        .custom-option {
+            width: 170px;
+            height: 135px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            cursor: pointer;
+            position: relative;
+            pointer-events: auto;
+        }
+        .custom-option:hover {
+            background: #f0f0f0;
+        }
+        .iframe-container {
+            width: 170px;
+            height: 135px;
+            overflow: hidden;
+            position: relative;
+            border: none;
+            outline: none;
+        }
+        .iframe-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .custom-option-text {
+            padding: 8px;
+            font-size: 1rem;
+        }
+        .error {
+            color: red;
+            display: none;
+            text-align: center;
+            font-size: 0.8rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .canvas-style {
+            width: 100%;
+            height: 100%;
+        }
+        .error-message {
+            color: red;
+            font-size: 0.9rem;
+            margin-top: -5px;
+            margin-bottom: 10px;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes dropdown {
+            0% { opacity: 0; transform: translateY(-20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @media (min-width: 769px) {
+            .modal {
+                align-items: flex-start;
+            }
+            .modal-content {
+                margin-top: 100px;
+                animation: dropdown 0.5s ease;
+            }
+            .generate-poem-container {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+            .generate-poem-container input {
+                flex: 1;
+            }
+            .generate-poem-container button {
+                flex-shrink: 0;
+            }
+            .container {
+                padding-top: 96px;
+                padding-bottom: 96px;
+            }
+        }
+        @media (max-width: 768px) {
+            html, body {
+                scroll-behavior: smooth;
+            }
+            .custom-select-menu {
+                scroll-behavior: smooth;
+            }
+            .container {
+                flex-direction: column;
+                padding-top: 50vh;
+                gap: 0;
+                padding-bottom: calc(100vh / 7);
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            .right-panel {
+                width: 100%;
+                height: calc(50vh + 7mm);
+                margin: 0;
+                position: fixed !important;
+                top: 0mm; /* Adjusted to align with cards at margin-top: 0mm */
+                left: 0;
+                z-index: 10;
+                background-color: #f4f4f4;
+                padding-top: 10px;
+                padding-bottom: 7mm;
+            }
+            .left-panel {
+                max-width: none;
+                width: 100%;
+                min-width: auto;
+                padding-top: calc(33.9px + 5mm); /* Increased by 5mm from 33.9px */
+            }
+            .card-container {
+                width: min(90vw, calc((50vh - 20px) * 290 / 462 * 1.106 * 1.07)); /* Increased by 7% */
+                height: auto;
+                aspect-ratio: 290 / 462;
+                margin: 0mm auto 0 auto; /* Adjusted to set top border to 0 */
+            }
+            .card-bottom {
+                top: calc(76 / 462 * 100%);
+                left: calc(76 / 290 * 100%);
+                transform: translate(20%, -20%);
+            }
+            .custom-select, select, input, textarea {
+                width: calc(100vw - 60px);
+                font-size: 1rem;
+                margin: 0 auto;
+                display: block;
+                margin-bottom: 10px;
+            }
+            details {
+                width: calc(100vw - 40px);
+                margin: 0 auto;
+                margin-top: 5mm;
+            }
+            summary, .dropdown-group h3 {
+                font-size: 1rem;
+                font-weight: bold;
+            }
+            .dropdown-group {
+                margin-bottom: 10px;
+            }
+            details {
+                margin-bottom: 5px;
+                padding: 5px;
+            }
+            .custom-select-menu {
+                position: fixed;
+                top: auto;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100vw;
+                height: 66vh;
+                max-height: none;
+                overflow-y: auto;
+                z-index: 1001;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0;
+                padding: 0 0 1cm 0;
+                box-sizing: border-box;
+                border-radius: 10px 10px 0 0;
+                border-left: none;
+                border-right: none;
+                border-bottom: none;
+                -webkit-overflow-scrolling: touch;
+            }
+            .custom-option {
+                width: 100%;
+                height: auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+            }
+            .iframe-container {
+                width: 100%;
+                height: auto;
+            }
+            .iframe-container img {
+                width: 100%;
+                height: auto;
+                object-fit: contain;
+            }
+            .custom-option-text {
+                font-size: 1rem;
+            }
+            .canvas-style {
+                width: 100%;
+                height: 100%;
+            }
+            .watermark {
+                font-size: 1.5rem;
+            }
+            .hp-container {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+            .hp-input {
+                flex: 1;
+                width: auto;
+            }
+            .submit-container {
+                width: calc(100vw - 40px);
+                margin: 0 auto;
+                margin-top: 5mm;
+            }
+            .submit-container button {
+                height: 38px;
+            }
+            .
+            .poem-title-input {
+                width: calc(100vw - 60px);
+            }
+            .poem-line-textarea {
+                width: calc(100vw - 60px);
+                height: 50px;
+            }
+        }
+        .scene-container {
+            position: absolute;
+            left: 50%;
+            top: 9.53%;
+            transform: translateX(-50%);
+            width: 81.5%;
+            height: auto;
+            aspect-ratio: 520 / 449;
+            overflow: hidden;
+            z-index: 3;
+            touch-action: none;
+        }
+        .scene-img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: center center;
+            width: auto;
+            height: auto;
+            max-width: none;
+            max-height: none;
+            object-fit: unset;
+        }
+        .sliders {
+            display: none;
+            margin-bottom: 10px;
+        }
+        .upload-button {
+            background-color: blue;
+            color: white;
+            padding: 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            margin-bottom: 10px;
+            margin-top: 5mm;
+        }
+        .placeholder-square {
+            background: white;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel" data-presets="env,react" data-plugins="transform-modules-commonjs">
+        const App = () => {
+            const [formData, setFormData] = React.useState({
+                borderColor: 'Yellow',
+                backgroundColor: 'Option 1',
+                backCard: 'Option 2',
+                poemSelection: 'Poem',
+                poemTitle: '',
+                poemText: '',
+                hp: Math.floor(Math.random() * 990 + 10).toString(),
+                leftName: 'Angelo',
+                leftPet: 'Option 11',
+                rightName: 'Vicky',
+                rightPet: 'Option 11',
+                style: 'LEGO'
+            });
+            const [showModal, setShowModal] = React.useState(false);
+            const [isSubmitting, setIsSubmitting] = React.useState(false);
+            const [loadedResources, setLoadedResources] = React.useState({});
+            const [elementResources, setElementResources] = React.useState({});
+            const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 768);
+            const [photoSrc, setPhotoSrc] = React.useState('');
+            const [transX, setTransX] = React.useState(0);
+            const [transY, setTransY] = React.useState(0);
+            const [scaleVal, setScaleVal] = React.useState(1.5);
+            const [isDragging, setIsDragging] = React.useState(false);
+            const [startX, setStartX] = React.useState(0);
+            const [startY, setStartY] = React.useState(0);
+            const sceneRef = React.useRef(null);
+            const evCache = [];
+            let prevDiff = -1;
+            React.useEffect(() => {
+                const handleResize = () => {
+                    setIsMobile(window.innerWidth <= 768);
+                };
+                window.addEventListener('resize', handleResize);
+                return () => window.removeEventListener('resize', handleResize);
+            }, []);
+            const event_poems = {
+                "Anniversary": ["On this day, our hearts align,", "Years of love, like vintage wine,", "Together strong, through storm and shine,", "Forever yours, forever mine."],
+                "Birthday": ["A day to cheer, a year to grow,", "With love and joy in every glow,", "Candles flicker, wishes flow,", "Happy birthday, my heart’s tableau."],
+                "Engagement": ["A promise made, a future near,", "With every step, I hold you dear,", "Bound by love, so crystal clear,", "Our journey starts, right here."],
+                "I LOVE YOU": ["Three words simple, yet so true,", "Every beat belongs to you,", "In your eyes, my world’s in view,", "I love you, through and through."],
+                "Just Because": ["No reason needed, just to say,", "You brighten up my every day,", "With you, my heart will always stay,", "Love’s pure gift, in every way."],
+                "Valentines Day": ["Through misty trails where wild winds play,", "Our love grows strong in the softest way,", "Like petals dancing in a sunlit fray,", "We chase our dreams in this vast array."],
+                "Wedding": ["Two souls unite, a vow so grand,", "Hand in hand, across life’s land,", "With rings we pledge, by love we stand,", "A timeless bond, forever planned."],
+                "Get Well Soon": ["Rest and heal, take time to mend,", "My love and care will never end,", "Soon you’ll rise, strong once again,", "Get well, my dearest friend."],
+                "New Home": ["New walls, new dreams, a place to start,", "Together we’ll make this house a heart,", "With every room, a brand new part,", "Of our love’s journey, a work of art."],
+                "Proposal": ["A question asked, a life to share,", "Will you take this ring I bear?", "Say yes, and let our love declare,", "A future bright, beyond compare."],
+                "First Date": ["Our first night, a spark so bright,", "Laughter shared beneath the light,", "A moment sweet, a love begun,", "Together now, two hearts as one."],
+                "Holiday Gift": ["A gift for you this festive day,", "Wrapped with love in every way,", "Joy and cheer to light your stay,", "Happy holidays, come what may."],
+                "Father's Day": ["Your love and strength guide us each day,", "Wisdom shared in your warm, steady way,", "Through every storm, you light our way,", "Dad, you're our hero, forever and always."],
+                "Mother's Day": ["Your love blooms, a guiding light,", "Gentle hands mend every plight,", "Heart so warm, our safe delight,", "Mom, you're our star, shining bright."],
+                "Congratulations": ["Your success sparks joy so grand,", "Hard work won, you take a stand,", "Bright future lies in your hand,", "Cheers to triumphs, bold and planned."],
+                "Sweet Oath": ["Your smile ignites my heart’s flame", "Every day, I’ll call your name", "Bound by joy, we’ll never part", "Love’s adventure, a work of art"],
+                "My Vow": ["Together we’ll soar, hearts entwined", "Through every storm, love’s light shines", "With you, my world is complete", "Forever yours, in victory sweet"]
+            };
+            const baseBackgrounds = Array.from({length: 14}, (_, i) => {
+                const num = i + 1;
+                return { value: `Option ${num}`, label: `Card Colour ${num}`, key: `BACKGROUNDOPTION${num}` };
+            });
+            const baseBackCards = Array.from({length: 14}, (_, i) => {
+                const num = i + 1;
+                return { value: `Option ${num}`, label: `Rear Card ${num}`, key: `CARDREAROPTION${num}` };
+            });
+            const baseSidekicks = [
+                { value: 'None', label: 'None' },
+                ...Array.from({length: 38}, (_, i) => {
+                    const num = i + 1;
+                    return { value: `Option ${num}`, label: `Sidekick Option ${num}`, key: `SIDEKICKOPTION${num}` };
+                })
+            ];
+            React.useEffect(() => {
+                const resources = {
+                    'CARDREAROPTION14': '1EY2oAJv6TdIKd9J7Vl3nlG0-vfWuYX10',
+                    'CARDREAROPTION13': '1_Ia-wTtcoHCatSt27Moi6ztfqS3dT5Tw',
+                    'CARDREAROPTION12': '1-P2WsDMDGtRwt_TAEirK29eUW3dMFc0N',
+                    'CARDREAROPTION11': '1s9J3JYvJrTWigsnqFxPLyVQXteUEA0dr',
+                    'CARDREAROPTION10': '1sgECZ2drb8fOo4fhNaCZV_A7BJTtLov-',
+                    'CARDREAROPTION9': '1fBuInX0yAfECzFeiOX9CGE4WIJuhNr_l',
+                    'CARDREAROPTION8': '1Ka2byWtlj_jVGqmhyKxOj-u8JAjgU4kA',
+                    'CARDREAROPTION7': '15Y7U3EjNQEeiHcZjuby70a1mttdtnKKF',
+                    'CARDREAROPTION6': '1SCyf8FuWxRN8bLABWtbVqgPCoZ80uZ8V',
+                    'CARDREAROPTION5': '1r_A1zDltkRu9COMhzoDqEayPDJ_UjaN_',
+                    'CARDREAROPTION4': '1-d8ipeDBRDlDUSdUMIHHIYpuCX3u_slh',
+                    'CARDREAROPTION3': '1QzboRmiw_QyQvSfTlUE8Jpg1HcVivQy-',
+                    'CARDREAROPTION2': '1tZYcbPstGTnOIvyyt9MRNJUDSyh0yOm9',
+                    'CARDREAROPTION1': '1wr0RVyZplRAgyTBNYC158ZV9AK4GyQEG',
+                    'BACKGROUNDOPTION14': '1ICZzgeQDfVRpjWQyBy1tjBDw_Gj9bdjI',
+                    'BACKGROUNDOPTION13': '1KiG2fkstR5ESRko5M4J3BE8yU_A-oeEc',
+                    'BACKGROUNDOPTION12': '1W0P7FYgCxBv5u_Qk456Prqtdn40dTzIu',
+                    'BACKGROUNDOPTION11': '1tChqc8g-Mi6N2LtkYxN8NHrVp0XZeu7r',
+                    'BACKGROUNDOPTION10': '1GT9Lry4KGAZL--_tO6F_mBQnLFU8yN9p',
+                    'BACKGROUNDOPTION9': '1Oo1QijSrXfhXEgZuVIJZrDqE9ILXqPsS',
+                    'BACKGROUNDOPTION8': '1K3IAu92afiq2s5Bu_GedsAumnkm39dLP',
+                    'BACKGROUNDOPTION7': '19YzOw0BZxkH4sYzouvT32wptbTnGv05e',
+                    'BACKGROUNDOPTION6': '1XL7N8q8-9vD0RftixdotcNRuNoQ1z_zk',
+                    'BACKGROUNDOPTION5': '1OubNMpQ4GptAXc_3zZSk1e2I7yDr8UM6',
+                    'BACKGROUNDOPTION4': '1HcDQ4YcNtw-SQYA2nDcQ-ysIFZx2vJo2',
+                    'BACKGROUNDOPTION3': '1M7aAZGmDUD168osGHLJtM12ePqMPRLVz',
+                    'BACKGROUNDOPTION2': '1CaUGvKCbQX0d3k882axisoB_pTjfiROH',
+                    'BACKGROUNDOPTION1': '1tN78_8vnyGIsZqd-Wo6-KWuZSv8W_3p2',
+                    'SIDEKICKNOSIDEKICK': '1MpjbcrXuFDDCRu6lUzNL-OHt9nwIwKsE',
+                    'SIDEKICKOPTION38': '1r2Rk9vxzzAGB4xMJED7-DqTgjG91Smmj',
+                    'SIDEKICKOPTION37': '1hsFCts2RaWJhws32fX_6-dtpjDCLDOM6',
+                    'SIDEKICKOPTION36': '1tleTWXl2LXOrt0Z4Cd3HzKMuCcJUvTkh',
+                    'SIDEKICKOPTION35': '1yHoZ9HYE638FVpu0n_yKSLTcmnOjD5VS',
+                    'SIDEKICKOPTION34': '1QcHWghQ5H-dJ6ymd6RPS2vj6xq5-IZAA',
+                    'SIDEKICKOPTION33': '15qEweO4-bIthrHXnIGh8G_qTTVtBIeqz',
+                    'SIDEKICKOPTION32': '1BvhJRqxBvsHv7NI2HCjZrmHK1O47S7G7',
+                    'SIDEKICKOPTION31': '15bWGtLiDQ9qVlsG3lvV1E8yM4A-sztpn',
+                    'SIDEKICKOPTION30': '1MNl4cWpDQgtrphk1vOdE964LHCcofvKl',
+                    'SIDEKICKOPTION29': '1BYoOq2PUcv3eDenYFlSXzVXwTx39634x',
+                    'SIDEKICKOPTION28': '1AG2jPQAyYrzx7p6v77AfHpa8hbrlFkBz',
+                    'SIDEKICKOPTION27': '1HHVqJWQn9Q4M7tDe6teM7PaM1kI4lC0K',
+                    'SIDEKICKOPTION26': '1h1wbJePRUPuNtcpL3z4BxkKPgg-7DaIU',
+                    'SIDEKICKOPTION25': '1KwgzTi8Iom2vem1QJU8VTEKJA-7TtXay',
+                    'SIDEKICKOPTION24': '1nYfXiwUa-bbhwa5CDOsGcjFxxPoNikHA',
+                    'SIDEKICKOPTION23': '1yVdTrnmUN91OqncLASDzjqfjzXa237-y',
+                    'SIDEKICKOPTION22': '1ZxCN91Mm5LW-XHVRLtESwAK0W3KmkDaI',
+                    'SIDEKICKOPTION21': '1GxqB1pWAO3mnn89r11wN1z_BLmfp2Kzc',
+                    'SIDEKICKOPTION20': '1JHyfVf1VjJKvTFE7bGiWJvzvaao50LLV',
+                    'SIDEKICKOPTION19': '1CD1IBnbwZO37jFC0Foevrcrmi1rVSNiy',
+                    'SIDEKICKOPTION18': '1ohRnqrK81v6hrWpX2j7HytwLAahFZX64',
+                    'SIDEKICKOPTION17': '1qpOWdFeoCGQ9zmBHB8TxIEEGKfswUyYf',
+                    'SIDEKICKOPTION16': '1aX-Fg95jFuPCOpr4Ohz4ADA-5Jcl0OgN',
+                    'SIDEKICKOPTION15': '1ZWeTxpMFzr72ie7fFTs19awKWD8pToWU',
+                    'SIDEKICKOPTION14': '1WqTWjSiFRqSZp8XzC7umGMQ5fzHzqTQE',
+                    'SIDEKICKOPTION13': '1GK0oiygbYQKrRBwa9FtdqR5eym6geNT1',
+                    'SIDEKICKOPTION12': '17HlI8bJcNt402TMULe1RHsxuk7sedvfE',
+                    'SIDEKICKOPTION11': '1sa8CHaYnvJ7-3Wje58eOKkbc1Mx3tV1w',
+                    'SIDEKICKOPTION10': '1C40fGWmNazDSdlxvDeGZROwC_SpGz70J',
+                    'SIDEKICKOPTION9': '1BDxu5BFDRSC2-Ci0oBwA1N1oDlP9Pl_2',
+                    'SIDEKICKOPTION8': '1K2osJ5jcY64cirpT5OWC2ZUuHKUvtTh-',
+                    'SIDEKICKOPTION7': '1rRuiVFH1-hbCPqfP0MgKNqzE6JBLB30x',
+                    'SIDEKICKOPTION6': '1lWA4hJa6FAdKefuMkx6vYfSlMncaXzzp',
+                    'SIDEKICKOPTION5': '1s5enB965GeGFLIuvV9P8LHvbw-HAbAPO',
+                    'SIDEKICKOPTION4': '1QQx6nSd3j1YGe-PUQMtp1RfBZnLownz1',
+                    'SIDEKICKOPTION3': '13sWhx7bV9TeNH6QkJC9wOhSSvGokE2lB',
+                    'SIDEKICKOPTION2': '10nZ8IqGZrMkzOXvsMnBY_LFiz1a3HwUo',
+                    'SIDEKICKOPTION1': '1AR3wZS6aLIy6VdJRSFJlCyOHswud4RXb'
+                };
+                setLoadedResources(resources);
+            }, []);
+            React.useEffect(() => {
+                const originalCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTnYW7k6BaT_rEQ4sIsExe97Fgwaevv1TokuKFpYtpjletWVhYg6Z9eeUwTgmz5qrXClescEa9CpLrx/pub?gid=0&single=true&output=csv';
+                fetch(originalCsvUrl)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Failed to fetch CSV');
+                        return response.text();
+                    })
+                    .then(text => {
+                        const rows = text.split('\n').slice(1);
+                        const map = {};
+                        rows.forEach(row => {
+                            const [filename, category, url] = row.split(',');
+                            if (url) {
+                                const idMatch = url.match(/id=([^&]+)/);
+                                if (idMatch) {
+                                    const key = (category ? category.trim() + '/' : '') + filename.trim();
+                                    map[key] = idMatch[1].trim();
+                                }
+                            }
+                        });
+                        setElementResources(map);
+                    })
+                    .catch(error => console.error('Error loading element CSV:', error));
+            }, []);
+            const [backgroundOptions, setBackgroundOptions] = React.useState([]);
+            const [backCardOptions, setBackCardOptions] = React.useState([]);
+            const [petOptions, setPetOptions] = React.useState([]);
+            React.useEffect(() => {
+                if (Object.keys(loadedResources).length > 0) {
+                    const enhance = (base, thumbnailSize = '&sz=w170') => base.map(opt => {
+                        if (opt.key) {
+                            const id = loadedResources[opt.key.toUpperCase()];
+                            return { ...opt, id, thumbnail: id ? `https://drive.google.com/thumbnail?id=${id}${thumbnailSize}` : '' };
+                        }
+                        return opt;
+                    });
+                    setBackgroundOptions(enhance(baseBackgrounds));
+                    setBackCardOptions(enhance(baseBackCards));
+                    setPetOptions(enhance(baseSidekicks));
+                }
+            }, [loadedResources]);
+            const canvasRef = React.useRef(null);
+            const validatePoem = (text) => {
+                const lines = text.split('\n').map(line => line.slice(0, 48));
+                if (lines.length > 4) {
+                    console.warn('Poem exceeds 4 lines; truncating to 4 lines');
+                    return lines.slice(0, 4).join('\n');
+                }
+                return lines.join('\n');
+            };
+            const toTitleCase = (str) => {
+                return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+            };
+            const handleChange = (id, value) => {
+                let newValue = value;
+                let additionalUpdates = {};
+                if (id === 'poemText') {
+                    newValue = validatePoem(value);
+                }
+                if (id === 'hp') {
+                    newValue = value.slice(0, 6);
+                }
+                if (id === 'poemSelection') {
+                    if (value !== 'Add Your Own Poem') {
+                        additionalUpdates.poemTitle = value;
+                        additionalUpdates.poemText = event_poems[value].join('\n');
+                    } else {
+                        additionalUpdates.poemTitle = '';
+                        additionalUpdates.poemText = '';
+                    }
+                }
+                setFormData(prev => ({ ...prev, [id]: newValue, ...additionalUpdates }));
+            };
+            const handlePoemLineChange = (index, value) => {
+                const lines = formData.poemText.split('\n');
+                lines[index] = value.slice(0, 48);
+                const newPoemText = lines.slice(0, 4).join('\n');
+                setFormData(prev => ({ ...prev, poemText: newPoemText }));
+            };
+            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxeSJPSXAuVuCs6Ar1GXo1JPdRNmAzmj_fZu9mKaf1_ZrQQ6NbzVHc86VwgWqLuMmgo/exec';
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setIsSubmitting(true);
+                const detailsElements = document.querySelectorAll('details');
+                detailsElements.forEach(detail => detail.removeAttribute('open'));
+                const status = document.getElementById('status');
+                if (status) status.textContent = '';
+                if (!photoSrc) {
+                    if (status) status.textContent = 'Please upload a photo.';
+                    setIsSubmitting(false);
+                    return;
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = 520;
+                canvas.height = 449;
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.src = photoSrc;
+                await new Promise(resolve => { img.onload = resolve; });
+                const sceneContainer = sceneRef.current;
+                const containerWidth = sceneContainer.offsetWidth;
+                const containerHeight = sceneContainer.offsetHeight;
+                let sWidth = containerWidth / scaleVal;
+                let sHeight = containerHeight / scaleVal;
+                let sx = img.width / 2 - sWidth / 2 - transX / scaleVal;
+                let sy = img.height / 2 - sHeight / 2 - transY / scaleVal;
+                sx = Math.max(0, Math.min(sx, Math.max(0, img.width - sWidth)));
+                sy = Math.max(0, Math.min(sy, Math.max(0, img.height - sHeight)));
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(
+                    img,
+                    sx, sy, sWidth, sHeight,
+                    0, 0, canvas.width, canvas.height
+                );
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
+                const arrayBuffer = await blob.arrayBuffer();
+                const imageBytes = Array.from(new Int8Array(arrayBuffer));
+                const leftName = formData.leftName.trim();
+                const rightName = formData.rightName.trim();
+                const style = formData.style;
+                const filename = `${leftName} & ${rightName} ${style}.png`;
+                const isPersonalised = formData.poemSelection === 'Add Your Own Poem';
+                const occasionMap = {
+                    'Anniversary': '1.Anniversary',
+                    'Birthday': '2.Birthday',
+                    'Engagement': '3.Engagement',
+                    'First Date': '4.First Date',
+                    'Holiday Gift': '5.Holiday Gift',
+                    'I LOVE YOU': '6.I LOVE YOU',
+                    'Get Well Soon': '7.Get Well Soon',
+                    'Just Because': '8.Just Because',
+                    'New Home': '9.New Home',
+                    'Proposal': '10.Proposal',
+                    'Valentines Day': '11.Valentines Day',
+                    "Father's Day": "12.Father's Day",
+                    "Mother's Day": "13.Mother's Day",
+                    'Congratulations': '14.Congratulations',
+                    'My Vow': '15.My Vow',
+                    'Sweet Oath': '16.Sweet Oath'
+                };
+                const occasion = isPersonalised ? 'Add your own Poem / Select and personalise in the next section' : (occasionMap[formData.poemSelection] || formData.poemSelection);
+                const message = isPersonalised ? `${formData.poemTitle}\n${formData.poemText}` : event_poems[formData.poemSelection].join('\n');
+                const combinedNames = `${leftName} & ${rightName}`.trim();
+                const randomHP = Math.floor(Math.random() * 990 + 10);
+                const hpValue = formData.hp || randomHP;
+                const payload = {
+                    orderNumber: combinedNames || 'Unknown',
+                    leftName: leftName || 'Unknown',
+                    leftPet: formData.leftPet || 'Option 11',
+                    rightName: rightName || 'Unknown',
+                    rightPet: formData.rightPet || 'Option 11',
+                    borderColor: formData.borderColor.replace('Orange', 'Oange') || 'Yellow',
+                    cardBgColor: formData.backgroundColor || 'Option 1',
+                    occasion: occasion || '6.I LOVE YOU',
+                    message: message || event_poems['I LOVE YOU'].join('\n'),
+                    backMessage: formData.backCard || 'Option 2',
+                    hp: hpValue,
+                    imageBytes: imageBytes,
+                    mimeType: 'image/png',
+                    filename: filename
+                };
+                try {
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        if (status) status.textContent = '';
+                        setShowModal(true);
+                    } else {
+                        if (status) status.textContent = `Error: ${result.message}`;
+                    }
+                } catch (err) {
+                    if (status) status.textContent = `Error: ${err.message}`;
+                } finally {
+                    setIsSubmitting(false);
+                }
+            };
+            const togglePoemInputs = () => {
+                const poemInputs = document.getElementById('poem-inputs');
+                poemInputs.style.display = formData.poemSelection === 'Add Your Own Poem' ? 'block' : 'none';
+            };
+            React.useEffect(() => {
+                togglePoemInputs();
+                const cardDesign = document.getElementById('card-design-details');
+                const leftDetails = document.getElementById('left-details');
+                const rightDetails = document.getElementById('right-details');
+                const handleCardDesignClick = () => {
+                    leftDetails.removeAttribute('open');
+                    rightDetails.removeAttribute('open');
+                };
+                const handleLeftClick = () => {
+                    cardDesign.removeAttribute('open');
+                    rightDetails.removeAttribute('open');
+                };
+                const handleRightClick = () => {
+                    cardDesign.removeAttribute('open');
+                    leftDetails.removeAttribute('open');
+                };
+                cardDesign.querySelector('summary').addEventListener('click', handleCardDesignClick);
+                leftDetails.querySelector('summary').addEventListener('click', handleLeftClick);
+                rightDetails.querySelector('summary').addEventListener('click', handleRightClick);
+                return () => {
+                    cardDesign.querySelector('summary').removeEventListener('click', handleCardDesignClick);
+                    leftDetails.querySelector('summary').removeEventListener('click', handleLeftClick);
+                    rightDetails.querySelector('summary').removeEventListener('click', handleRightClick);
+                };
+            }, [formData.poemSelection]);
+            React.useEffect(() => {
+                const drawTexts = async () => {
+                    const fontName = 'Arimo';
+                    try {
+                        await document.fonts.load(`26px ${fontName}`);
+                    } catch (err) {
+                        console.error('Font loading failed:', err);
+                        return;
+                    }
+                    const canvas = canvasRef.current;
+                    if (!canvas) return;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return;
+                    const container = document.querySelector('.card-container');
+                    const containerWidth = container.offsetWidth;
+                    const scale = containerWidth / 290;
+                    canvas.width = 638 * scale;
+                    canvas.height = 1016 * scale;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    let fontSize = isMobile ? 24 : 26;
+                    let effectiveScale = scale;
+                    if (isMobile) {
+                        effectiveScale = scale + (1 - scale) * 0.2;
+                    }
+                    ctx.font = `${fontSize * effectiveScale}px ${fontName}`;
+                    ctx.scale(scale, scale);
+                    let text_tag = '';
+                    let poem_lines = [];
+                    if (formData.poemSelection === 'Add Your Own Poem') {
+                        text_tag = formData.poemTitle;
+                        poem_lines = formData.poemText.split('\n').filter(line => line.trim());
+                    } else if (formData.poemSelection !== 'Poem') {
+                        text_tag = formData.poemSelection;
+                        poem_lines = event_poems[formData.poemSelection] || event_poems["First Date"];
+                    }
+                    const leftName = toTitleCase(formData.leftName || '');
+                    const rightName = toTitleCase(formData.rightName || '');
+                    const randomHP = Math.floor(Math.random() * 990 + 10);
+                    const hp = (formData.hp ? formData.hp + ' HP' : randomHP + ' HP');
+                    const texts = [
+                        { text: text_tag, x_mm: 8.8, y_mm: 56.95, color: 'rgb(0,0,0)', align: 'left' },
+                        { text: hp, x_mm: 38.6, y_mm: 57.05, color: 'rgb(0,0,0)', align: 'left' },
+                        { text: leftName, x_start: 4.8, x_end: 18, y_mm: 4.6, color: 'rgb(180,120,0)', align: 'center' },
+                        { text: rightName, x_start: 36.3, x_end: 49.3, y_mm: 4.6, color: 'rgb(160,100,0)', align: 'center' },
+                        { text: leftName, x_start: 7.4, x_end: 20.4, y_mm: 61.95, color: 'rgb(0,0,0)', align: 'center' },
+                        { text: rightName, x_start: 32.2, x_end: 46.3, y_mm: 61.95, color: 'rgb(0,0,0)', align: 'center' }
+                    ];
+                    const MM_TO_PX = 300 / 25.4;
+                    texts.forEach(({text, x_mm, y_mm, color, align, x_start, x_end}) => {
+                        if (!text) return;
+                        ctx.fillStyle = color;
+                        const metrics = ctx.measureText(text);
+                        let x = x_mm ? x_mm * MM_TO_PX : ((x_start + x_end) / 2) * MM_TO_PX - metrics.width / 2;
+                        const y = y_mm * MM_TO_PX + metrics.actualBoundingBoxAscent;
+                        ctx.fillText(text, x, y);
+                    });
+                    const poem_center_x_mm = (5.7 + 48.3) / 2;
+                    const poem_center_x = poem_center_x_mm * MM_TO_PX;
+                    let poem_y_start = 69.0 * MM_TO_PX;
+                    const line_spacing = 3 * MM_TO_PX;
+                    const num_lines = poem_lines.length;
+                    if (num_lines < 4) {
+                        const total_height = line_spacing * 3;
+                        const used_height = line_spacing * (num_lines - 1);
+                        const offset = (total_height - used_height) / 2;
+                        poem_y_start += offset;
+                    }
+                    poem_lines.slice(0, 4).forEach((line, i) => {
+                        ctx.fillStyle = 'rgb(0,0,0)';
+                        const metrics = ctx.measureText(line);
+                        const x = poem_center_x - metrics.width / 2;
+                        const y = poem_y_start + i * line_spacing + metrics.actualBoundingBoxAscent;
+                        ctx.fillText(line, x, y);
+                    });
+                };
+                drawTexts();
+            }, [formData, isMobile]);
+            const getThumbnailUrl = (key, size = 'w1000') => {
+                const id = elementResources[key];
+                return id ? `https://drive.google.com/thumbnail?id=${id}&sz=${size}` : '';
+            };
+            let leftPetUrl = '';
+            if (formData.leftPet && formData.leftPet !== 'None') {
+                const key = 'Left Characters Pokemon:Pet/' + formData.leftPet + '.png';
+                leftPetUrl = getThumbnailUrl(key);
+            }
+            let rightPetUrl = '';
+            if (formData.rightPet && formData.rightPet !== 'None') {
+                const key = 'Right Characters Pokemon:Pet/' + formData.rightPet + '.png';
+                rightPetUrl = getThumbnailUrl(key);
+            }
+            const borderColors = [
+                { value: 'Yellow', label: 'Border Yellow' },
+                { value: 'Navy Blue', label: 'Border Navy Blue' },
+                { value: 'Red', label: 'Border Red' },
+                { value: 'White', label: 'Border White' },
+                { value: 'Orange', label: 'Border Orange' },
+                { value: 'Baby Blue', label: 'Border Baby Blue' }
+            ];
+            const poemOptions = [
+                { value: 'Poem', label: 'Poem' },
+                { value: 'Add Your Own Poem', label: 'Add Your Own Poem' },
+                { value: 'Anniversary', label: 'Anniversary' },
+                { value: 'Birthday', label: 'Birthday' },
+                { value: 'Engagement', label: 'Engagement' },
+                { value: 'I LOVE YOU', label: 'I LOVE YOU' },
+                { value: 'Just Because', label: 'Just Because' },
+                { value: 'Valentines Day', label: 'Valentines Day' },
+                { value: 'Wedding', label: 'Wedding' },
+                { value: 'Get Well Soon', label: 'Get Well Soon' },
+                { value: 'New Home', label: 'New Home' },
+                { value: 'Proposal', label: 'Proposal' },
+                { value: 'First Date', label: 'First Date' },
+                { value: 'Holiday Gift', label: 'Holiday Gift' },
+                { value: "Father's Day", label: "Father's Day" },
+                { value: "Mother's Day", label: "Mother's Day" },
+                { value: 'Congratulations', label: 'Congratulations' },
+                { value: 'Sweet Oath', label: 'Sweet Oath' },
+                { value: 'My Vow', label: 'My Vow' }
+            ];
+            const styleOptions = [
+                { value: 'LEGO', label: 'LEGO' },
+                { value: 'MINECRAFT', label: 'MINECRAFT' },
+                { value: 'PIXAR', label: 'PIXAR' },
+                { value: 'ANIME', label: 'ANIME' },
+                { value: 'GHIBLI', label: 'GHIBLI' },
+                { value: 'PIXELLATED', label: 'PIXELLATED' }
+            ];
+            const CustomSelect = ({ id, value, options, onChange, placeholder }) => {
+                const [isOpen, setIsOpen] = React.useState(false);
+                const selectedOption = options.find(opt => opt.value === value) || { value: '', label: placeholder };
+                const getDisplayText = (opt, id) => {
+                    if (!opt.value) return placeholder;
+                    if (id.endsWith('Pet')) {
+                        if (opt.value === 'None') return opt.value;
+                        return `Pet ${opt.value.replace('Option ', '')}`;
+                    }
+                    return opt.label || opt.value;
+                };
+                const toggleOpen = () => {
+                    if (isOpen) {
+                        setIsOpen(false);
+                    } else {
+                        document.dispatchEvent(new Event('closeAllDropdowns'));
+                        setIsOpen(true);
+                    }
+                };
+                React.useEffect(() => {
+                    const close = () => setIsOpen(false);
+                    document.addEventListener('closeAllDropdowns', close);
+                    return () => document.removeEventListener('closeAllDropdowns', close);
+                }, []);
+                const handleSelect = (opt) => {
+                    onChange(id, opt.value);
+                    setIsOpen(false);
+                };
+                React.useEffect(() => {
+                    if (window.innerWidth <= 768) {
+                        if (isOpen) {
+                            document.body.style.overflow = 'hidden';
+                        } else {
+                            document.body.style.overflow = '';
+                        }
+                        return () => {
+                            document.body.style.overflow = '';
+                        };
+                    }
+                }, [isOpen]);
+                React.useEffect(() => {
+                    if (isMobile && isOpen && id.endsWith('Pet')) {
+                        const menu = document.querySelector('.custom-select-menu');
+                        if (menu) {
+                            menu.classList.add('full-height-menu');
+                        }
+                    }
+                }, [isOpen, isMobile, id]);
+                return (
+                    <div className="custom-select">
+                        <button
+                            type="button"
+                            className="custom-select-button"
+                            onClick={toggleOpen}
+                        >
+                            {getDisplayText(selectedOption, id)}
+                        </button>
+                        {isOpen && (
+                            <div className="custom-select-menu">
+                                {options.map(opt => (
+                                    <div
+                                        key={opt.value}
+                                        className="custom-option"
+                                        onClick={() => handleSelect(opt)}
+                                    >
+                                        {opt.thumbnail ? (
+                                            <div className="iframe-container">
+                                                <img src={opt.thumbnail} alt={opt.value} loading="lazy" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+                                                <span className="error">Image not found</span>
+                                            </div>
+                                        ) : (
+                                            <span className="custom-option-text">{opt.label}</span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+            const borderMap = {
+                'Yellow': '1OvWTF7_cXFJYMaPMesR_P2kxdSwX1KNS',
+                'Navy Blue': '1otoJGCL29z6p_qzkabMmFBvRbJYtluAd',
+                'Red': '1aO-nJ3RdOxCKP_1bG4OtekaRCF6UVnFh',
+                'White': '1yemAEqrAUlDM5bngB7L7_l_Mwhhp0RkV',
+                'Orange': '1YCsyifaB4SrqxG9sA7MuPZsGDblaE7BJ',
+                'Baby Blue': '1LTwxk-ChGL5_bP1uS3i-Wjb8HCkZxiMQ'
+            };
+            const borderUrl = formData.borderColor ? `https://drive.google.com/thumbnail?id=${borderMap[formData.borderColor]}&sz=w1000` : '';
+            const backgroundKey = 'CARDBACKGROUNDOPTIONS/CARDBACKGROUNDOPTION' + formData.backgroundColor.replace('Option ', '') + '.png';
+            const backgroundUrl = getThumbnailUrl(backgroundKey);
+            const fourthLayerUrl = `https://drive.google.com/thumbnail?id=1NMwGf9jcvJhVOuyDs7Y_8t14ux_sYHe3&sz=w1000`;
+            const backCardKey = 'REAR CARDS/POKEMON REAR' + formData.backCard.replace('Option ', '') + '.png';
+            const backCardUrl = getThumbnailUrl(backCardKey);
+            const poemTitlePlaceholder = 'Poem Title';
+            const poemLines = formData.poemText.split('\n').slice(0, 4);
+            const handlePhotoUpload = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    setPhotoSrc(ev.target.result);
+                    const img = new Image();
+                    img.src = ev.target.result;
+                    img.onload = () => {
+                        const container = sceneRef.current;
+                        if (!container) return;
+                        const contWidth = container.clientWidth;
+                        const contHeight = container.clientHeight;
+                        const coverScale = Math.max(contWidth / img.width, contHeight / img.height);
+                        setScaleVal(coverScale);
+                        setTransX(0);
+                        setTransY(0);
+                        const sliders = document.querySelector('.sliders');
+                        if (sliders) sliders.style.display = 'block';
+                    };
+                };
+                reader.readAsDataURL(file);
+            };
+            const updateTransform = () => {
+                const img = document.querySelector('.scene-img');
+                if (img) {
+                    img.style.transform = `translate(-50%, -50%) translate(${transX}px, ${transY}px) scale(${scaleVal})`;
+                }
+            };
+            React.useEffect(updateTransform, [transX, transY, scaleVal, photoSrc]);
+            const handleMouseDown = (e) => {
+                setIsDragging(true);
+                setStartX(e.clientX - transX);
+                setStartY(e.clientY - transY);
+            };
+            const handleMouseMove = (e) => {
+                if (isDragging) {
+                    setTransX(e.clientX - startX);
+                    setTransY(e.clientY - startY);
+                }
+            };
+            const handleMouseUp = () => {
+                setIsDragging(false);
+            };
+            const handleWheel = (e) => {
+                e.preventDefault();
+                const rect = e.target.getBoundingClientRect();
+                const px = e.clientX - rect.left;
+                const py = e.clientY - rect.top;
+                const ix = (px - transX) / scaleVal;
+                const iy = (py - transY) / scaleVal;
+                let delta = e.deltaY * -0.001;
+                let newScale = Math.min(Math.max(scaleVal + delta, 0.1), 5);
+                setTransX(px - ix * newScale);
+                setTransY(py - iy * newScale);
+                setScaleVal(newScale);
+            };
+            const handlePointerDown = (e) => {
+                evCache.push(e);
+                if (evCache.length === 1) {
+                    setStartX(e.clientX - transX);
+                    setStartY(e.clientY - transY);
+                }
+            };
+            const handlePointerMove = (e) => {
+                const index = evCache.findIndex((cachedEv) => cachedEv.pointerId === e.pointerId);
+                if (index === -1) return;
+                evCache[index] = e;
+                if (evCache.length === 1) {
+                    setTransX(e.clientX - startX);
+                    setTransY(e.clientY - startY);
+                } else if (evCache.length === 2) {
+                    const curDiff = Math.hypot(evCache[0].clientX - evCache[1].clientX, evCache[0].clientY - evCache[1].clientY);
+                    if (prevDiff > 0) {
+                        const rect = e.target.getBoundingClientRect();
+                        const centerX = ((evCache[0].clientX + evCache[1].clientX) / 2) - rect.left;
+                        const centerY = ((evCache[0].clientY + evCache[1].clientY) / 2) - rect.top;
+                        const ix = (centerX - transX) / scaleVal;
+                        const iy = (centerY - transY) / scaleVal;
+                        let delta = (curDiff - prevDiff) * 0.005;
+                        let newScale = Math.min(Math.max(scaleVal + delta, 0.1), 5);
+                        setTransX(centerX - ix * newScale);
+                        setTransY(centerY - iy * newScale);
+                        setScaleVal(newScale);
+                    }
+                    prevDiff = curDiff;
+                }
+            };
+            const handlePointerUp = (e) => {
+                const index = evCache.findIndex((cachedEv) => cachedEv.pointerId === e.pointerId);
+                if (index > -1) evCache.splice(index, 1);
+                if (evCache.length < 2) prevDiff = -1;
+            };
+            return (
+                <div>
+                    <div className="container">
+                        <div className="left-panel">
+                            <div className="dropdown-group">
+                                <details id="card-design-details">
+                                    <summary className="emoji-label">Card Design</summary>
+                                    <CustomSelect
+                                        id="borderColor"
+                                        value={formData.borderColor}
+                                        options={borderColors}
+                                        onChange={handleChange}
+                                        placeholder="Border Color"
+                                    />
+                                    <CustomSelect
+                                        id="backgroundColor"
+                                        value={formData.backgroundColor}
+                                        options={backgroundOptions}
+                                        onChange={handleChange}
+                                        placeholder="Card Colour"
+                                    />
+                                    <div className="upload-button" onClick={() => document.getElementById('photoUpload').click()}>UPLOAD PHOTO</div>
+                                    <input type="file" id="photoUpload" accept="image/*" style={{display: 'none'}} onChange={handlePhotoUpload} />
+                                    <div className="sliders">
+                                        <label>Left/Right: <input type="range" min="-1000" max="1000" value={transX} onChange={(e) => setTransX(parseInt(e.target.value))} /></label>
+                                        <label>Up/Down: <input type="range" min="-1000" max="1000" value={transY} onChange={(e) => setTransY(parseInt(e.target.value))} /></label>
+                                        <label>Zoom: <input type="range" min="0.1" max="5" step="0.01" value={scaleVal} onChange={(e) => setScaleVal(parseFloat(e.target.value))} /></label>
+                                    </div>
+                                    <CustomSelect
+                                        id="style"
+                                        value={formData.style}
+                                        options={styleOptions}
+                                        onChange={handleChange}
+                                        placeholder="Style"
+                                    />
+                                    {isMobile ? (
+                                        <input
+                                            id="hp"
+                                            type="text"
+                                            placeholder="Choose your HP (optional)"
+                                            value={formData.hp}
+                                            onChange={(e) => handleChange('hp', e.target.value)}
+                                            style={{ marginBottom: '10px' }}
+                                        />
+                                    ) : (
+                                        <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                            <input
+                                                id="hp"
+                                                type="text"
+                                                placeholder="Choose your HP (optional)"
+                                                value={formData.hp}
+                                                onChange={(e) => handleChange('hp', e.target.value)}
+                                                style={{ flex: '1', height: '38px' }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, hp: Math.floor(Math.random() * 990 + 10).toString() }))}
+                                                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-10 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                                                style={{ height: '38px' }}
+                                            >
+                                                Random HP
+                                            </button>
+                                        </div>
+                                    )}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                                        <CustomSelect
+                                            id="poemSelection"
+                                            value={formData.poemSelection}
+                                            options={poemOptions}
+                                            onChange={handleChange}
+                                            placeholder="Poem"
+                                        />
+                                    </div>
+                                    <div id="poem-inputs" style={{ marginBottom: '10px' }}>
+                                        <input
+                                            id="poemTitle"
+                                            type="text"
+                                            placeholder={poemTitlePlaceholder}
+                                            maxLength="22"
+                                            value={formData.poemTitle}
+                                            onChange={(e) => handleChange(e.target.id, e.target.value)}
+                                            className={isMobile ? 'poem-title-input' : ''}
+                                            style={{ marginBottom: '10px' }}
+                                        />
+                                        {formData.poemSelection === 'Add Your Own Poem' && (
+                                            isMobile ? (
+                                                <>
+                                                    {['Line 1', 'Line 2', 'Line 3', 'Line 4'].map((placeholder, index) => (
+                                                        <textarea
+                                                            key={index}
+                                                            placeholder={placeholder}
+                                                            maxLength="48"
+                                                            rows="2"
+                                                            value={poemLines[index] || ''}
+                                                            onChange={(e) => handlePoemLineChange(index, e.target.value)}
+                                                            className="poem-line-textarea"
+                                                            style={{ marginBottom: '10px' }}
+                                                        />
+                                                    ))}
+                                                </>
+                                            ) : (
+                                                <textarea
+                                                    id="poemText"
+                                                    placeholder="Poem"
+                                                    rows="4"
+                                                    maxLength="195"
+                                                    value={formData.poemText}
+                                                    onChange={(e) => handleChange(e.target.id, e.target.value)}
+                                                    style={{ marginBottom: '10px' }}
+                                                ></textarea>
+                                            )
+                                        )}
+                                    </div>
+                                    <CustomSelect
+                                        id="backCard"
+                                        value={formData.backCard}
+                                        options={backCardOptions}
+                                        onChange={handleChange}
+                                        placeholder="Rear Card"
+                                    />
+                                </details>
+                            </div>
+                            <div className="dropdown-group">
+                                <details id="left-details">
+                                    <summary className="emoji-label">Left Side</summary>
+                                    <input
+                                        id="leftName"
+                                        type="text"
+                                        placeholder="Left Character's First Name"
+                                        value={formData.leftName}
+                                        onChange={(e) => handleChange(e.target.id, e.target.value)}
+                                        style={{ fontSize: '1rem' }}
+                                    />
+                                    <CustomSelect
+                                        id="leftPet"
+                                        value={formData.leftPet}
+                                        options={petOptions}
+                                        onChange={handleChange}
+                                        placeholder="Left Pokemon/Pet"
+                                    />
+                                </details>
+                            </div>
+                            <div className="dropdown-group">
+                                <details id="right-details">
+                                    <summary className="emoji-label">Right Side</summary>
+                                    <input
+                                        id="rightName"
+                                        type="text"
+                                        placeholder="Right Character's First Name"
+                                        value={formData.rightName}
+                                        onChange={(e) => handleChange(e.target.id, e.target.value)}
+                                        style={{ fontSize: '1rem' }}
+                                    />
+                                    <CustomSelect
+                                        id="rightPet"
+                                        value={formData.rightPet}
+                                        options={petOptions}
+                                        onChange={handleChange}
+                                        placeholder="Right Pokemon/Pet"
+                                    />
+                                </details>
+                            </div>
+                            <div className="submit-container">
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={isSubmitting}
+                                    className={`bg-blue-900 text-white px-16 py-4 text-lg rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 w-full text-center ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-800'}`}
+                                >
+                                    {isSubmitting ? (
+                                        <div className="loading-spinner"></div>
+                                    ) : (
+                                        'SUBMIT'
+                                    )}
+                                </button>
+                            </div>
+                            {showModal && (
+                                <div className="modal">
+                                    <div className="modal-content">
+                                        <h2 className="text-2xl font-bold mb-4">Pokémon Card Power-Up!</h2>
+                                        <p className="mb-4">Thanks for crafting your Pokémon-powered card! I'll start working on it faster than a Pikachu's Thunderbolt!</p>
+                                        <button
+                                            onClick={() => setShowModal(false)}
+                                            className="bg-blue-900 text-white px-8 py-2 rounded-md hover:bg-blue-800"
+                                        >
+                                            OK
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                            <p id="status"></p>
+                        </div>
+                        <div className="right-panel">
+                            <div className="card-container">
+                                <div className="card card-top">
+                                    <div style={{position: 'relative', width: '100%', height: '100%'}}>
+                                        {borderUrl && <img src={borderUrl} alt="Border" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1}} />}
+                                        {backgroundUrl && <img src={backgroundUrl} alt="Background" style={{position: 'absolute', left: '5.55%', top: '3.49%', width: '88.89%', height: '93.02%', zIndex: 2}} />}
+                                        <div className="scene-container" ref={sceneRef} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onWheel={handleWheel} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} onPointerOut={handlePointerUp} onPointerLeave={handlePointerUp}>
+                                            {photoSrc ? <img className="scene-img" src={photoSrc} alt="Uploaded Scene" /> : <div className="placeholder-square"></div>}
+                                        </div>
+                                        <img src={fourthLayerUrl} alt="Frame" style={{position: 'absolute', left: '50%', top: '3.14%', transform: 'translateX(-50%)', width: '84%', height: 'auto', zIndex: 11}} />}
+                                        {leftPetUrl && <img src={leftPetUrl} alt="Left Pet" style={{position: 'absolute', left: '11.45%', top: '50.44%', width: '20.6%', height: 'auto', zIndex: 12}} />}
+                                        {rightPetUrl && <img src={rightPetUrl} alt="Right Pet" style={{position: 'absolute', left: '68.55%', top: '50.44%', width: '20.6%', height: 'auto', zIndex: 12}} />}
+                                        <canvas ref={canvasRef} className="canvas-style" style={{position: 'absolute', top: 0, left: 0, zIndex: 14}}></canvas>
+                                    </div>
+                                    <div className="watermark-container">
+                                        {Array.from({length: 9}).map((_, i) => (
+                                            <div key={i} className="watermark" style={{top: `${Math.floor(i / 3) * 33}%`, left: `${(i % 3) * 33}%`}}>
+                                                Preview Only
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="card card-bottom">
+                                    <img src={backCardUrl} alt="Bottom Card" style={{width: '100%', height: '100%'}} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
