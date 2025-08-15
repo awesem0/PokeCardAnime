@@ -306,7 +306,7 @@
                 height: calc(50vh + 7mm);
                 margin: 0;
                 position: fixed !important;
-                top: 0mm; /* Adjusted to align with cards at margin-top: 0mm */
+                top: 0mm;
                 left: 0;
                 z-index: 10;
                 background-color: #f4f4f4;
@@ -317,13 +317,13 @@
                 max-width: none;
                 width: 100%;
                 min-width: auto;
-                padding-top: calc(33.9px + 5mm); /* Increased by 5mm from 33.9px */
+                padding-top: calc(33.9px + 5mm + 15px);
             }
             .card-container {
-                width: min(90vw, calc((50vh - 20px) * 290 / 462 * 1.106 * 1.07)); /* Increased by 7% */
+                width: min(90vw, calc((50vh - 20px) * 290 / 462 * 1.106 * 1.07));
                 height: auto;
                 aspect-ratio: 290 / 462;
-                margin: 0mm auto 0 auto; /* Adjusted to set top border to 0 */
+                margin: 0mm auto 0 auto;
             }
             .card-bottom {
                 top: calc(76 / 462 * 100%);
@@ -419,13 +419,24 @@
             .submit-container button {
                 height: 38px;
             }
-            .
             .poem-title-input {
                 width: calc(100vw - 60px);
             }
             .poem-line-textarea {
                 width: calc(100vw - 60px);
                 height: 50px;
+            }
+            .sliders label {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 10px;
+                width: calc(100% - 3px);
+                margin-right: 3px;
+            }
+            .sliders input[type="range"] {
+                flex: 1;
+                margin-right: 10px;
             }
         }
         .scene-container {
@@ -454,6 +465,9 @@
         .sliders {
             display: none;
             margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
         .upload-button {
             background-color: blue;
@@ -1168,9 +1182,9 @@
                                     <div className="upload-button" onClick={() => document.getElementById('photoUpload').click()}>UPLOAD PHOTO</div>
                                     <input type="file" id="photoUpload" accept="image/*" style={{display: 'none'}} onChange={handlePhotoUpload} />
                                     <div className="sliders">
-                                        <label>Left/Right: <input type="range" min="-1000" max="1000" value={transX} onChange={(e) => setTransX(parseInt(e.target.value))} /></label>
-                                        <label>Up/Down: <input type="range" min="-1000" max="1000" value={transY} onChange={(e) => setTransY(parseInt(e.target.value))} /></label>
-                                        <label>Zoom: <input type="range" min="0.1" max="5" step="0.01" value={scaleVal} onChange={(e) => setScaleVal(parseFloat(e.target.value))} /></label>
+                                        <label><input type="range" min="-1000" max="1000" value={transX} onChange={(e) => setTransX(parseInt(e.target.value))} />Left/Right</label>
+                                        <label><input type="range" min="-1000" max="1000" value={transY} onChange={(e) => setTransY(parseInt(e.target.value))} />Up/Down</label>
+                                        <label><input type="range" min="0.1" max="5" step="0.01" value={scaleVal} onChange={(e) => setScaleVal(parseFloat(e.target.value))} />Zoom</label>
                                     </div>
                                     <CustomSelect
                                         id="style"
