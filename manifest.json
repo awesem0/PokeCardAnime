@@ -1,0 +1,9 @@
+{
+  "name": "Ghibli PixelArt PokuCard",
+  "short_name": "PokuCard",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f4f4f4",
+  "theme_color": "#1e3a8a",
+  "icons": []
+}
